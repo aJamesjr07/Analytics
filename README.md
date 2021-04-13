@@ -1,2 +1,2 @@
 # Linear-Regression-using-R
-Check the branch
+Iris task is cluster analysis
