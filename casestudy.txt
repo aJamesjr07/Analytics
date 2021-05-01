@@ -1,0 +1,178 @@
+Query 1 and 2.
+1.Standardise the mail_sent_date column values to YYYY-MM-DD standard date format
+2.In which Year maximum number of emails were sent to doctors? 
+
+> library(readxl)
+> Emails_sent <- read_excel("C:/Users/Daisy James/Desktop/Studies/R/Emails sent.xlsx")
+> View(Emails_sent)
+> head(Emails_sent)
+# A tibble: 6 x 5
+  name_last name_first name_middle mail_sent_date      office                                      
+  <chr>     <chr>      <chr>       <chr>               <chr>                                       
+1 ADELGLASS JEFFREY    M.          2009-05-22 00:00:00 Center for Drug Evaluation and Research     
+2 ADKINSON  N.         FRANKLIN    2010-04-17          Center for Biologics Evaluation and Research
+3 ALLEN     MARK       S.          2012-01-26          Center for Devices and Radiological Health  
+4 AMSTERDAM DANIEL     NA          2014.11.15          Center for Biologics Evaluation and Research
+5 AMSTUTZ   HARLAN     C.          2014.07.17          Center for Devices and Radiological Health  
+6 ANDERSON  C.         JOSEPH      2010-02-22          Center for Devices and Radiological Health  
+> Emails_sent$mail_sent_date=as.Date(Emails_sent$mail_sent_date)
+> x=Emails_sent$mail_sent_date
+> x=(format(x,format="%y"))
+> table(x)
+x
+06 07 08 09 10 11 12 13 15 16 17 18 20 
+ 1 15  8 14 25 20 16 21 31 25 11 23  5 
+> save.image("~/Arjuncasestudy.RData")
+
+Query 3.
+3.Write a query to get total fine paid per Office
+
+
+> d=read.csv("C:/Users/Daisy James/Desktop/Studies/R/Fines.csv",header = TRUE)
+> View(d)
+> d$cash_fine=gsub("[[:punct:]]", "", d$cash_fine)
+> d$online_fine=gsub("[[:punct:]]", "", d$online_fine)
+> 
+> d$finetot=paste(d$cash_fine,d$online_fine)
+> d$finetot=as.integer(d$finetot)
+> library(ISLR)
+> office=group_by(d,category)
+> summarise(office,finesum=sum(finetot,na.rm = TRUE))
+# A tibble: 9 x 2
+  category                                                           finesum
+  <chr>                                                                <int>
+1 ""                                                                       0
+2 "Business Related Travel"                                        169532900
+3 "Educational Items"                                                1232200
+4 "Expert-Led Forums"                                              963497000
+5 "Infosys Sponsored Research initiated before July 1, 2009"      1113757400
+6 "Infosys Sponsored Research initiated on or after July 1, 2009"  289691100
+7 "Investigator-Initiated Research"                                144185500
+8 "Meals"                                                           97941900
+9 "Professional Advising"                                          756963100
+> office1=summarise(office,finesum=sum(finetot,na.rm = TRUE))
+> arrange(office1,office1$finesum)
+# A tibble: 9 x 2
+  category                                                           finesum
+  <chr>                                                                <int>
+1 ""                                                                       0
+2 "Educational Items"                                                1232200
+3 "Meals"                                                           97941900
+4 "Investigator-Initiated Research"                                144185500
+5 "Business Related Travel"                                        169532900
+6 "Infosys Sponsored Research initiated on or after July 1, 2009"  289691100
+7 "Professional Advising"                                          756963100
+8 "Expert-Led Forums"                                              963497000
+9 "Infosys Sponsored Research initiated before July 1, 2009"      1113757400
+
+Query 4.
+4.Write a query to get the highest total fine and lowest total fine paid per state
+
+> statedets=group_by(d,state)
+> states1=summarise(statedets,finesum1=sum(finetot,na.rm = TRUE))
+> summary(states1)
+   d$state             finesum1        
+ Length:52          Min.   :   175000  
+ Class :character   1st Qu.: 10496125  
+ Mode  :character   Median : 35916550  
+                    Mean   : 68015406  
+                    3rd Qu.: 85464500  
+                    Max.   :473780700 
+> y=group_by(d,state)
+> summarise(y,state_sum=sum(finetot,na.rm = TRUE))
+# A tibble: 52 x 2
+   state state_sum
+   <chr>     <int>
+ 1 AK       175000
+ 2 AL     68169900
+ 3 AR     16093200
+ 4 AZ     64185100
+ 5 CA    473780700
+ 6 CO     91523800
+ 7 CT     63228200
+ 8 DC     25054100
+ 9 DE      5398700
+10 FL    256404700
+# ... with 42 more rows
+> least=summarise(y,state_sum=sum(finetot,na.rm = TRUE))
+> arrange(least,least$state_sum)
+# A tibble: 52 x 2
+   state state_sum
+   <chr>     <int>
+ 1 AK       175000
+ 2 MT      1120800
+ 3 ND      1614600
+ 4 ME      1873100
+ 5 SD      2950300
+ 6 VT      2988800
+ 7 ID      3765600
+ 8 WY      3996200
+ 9 HI      4261700
+10 DE      5398700
+# ... with 42 more rows
+Query 5.
+5.Write a query to get the least 2 states that had to pay minimum 'online' fine 
+
+> least=group_by(d,state)
+> least$online_fine=as.integer(least$online_fine)
+> leastste=summarise(least,mysum=sum(online_fine,na.rm = TRUE))
+> summary(leastste)
+    state               mysum         
+ Length:52          Min.   :       0  
+ Class :character   1st Qu.:  824125  
+ Mode  :character   Median : 2932100  
+                    Mean   : 5167442  
+                    3rd Qu.: 5505525  
+                    Max.   :40629000  
+> arrange(leastste,leastste$mysum)
+# A tibble: 52 x 2
+   state  mysum
+   <chr>  <int>
+ 1 AK         0
+ 2 ND     32100
+ 3 ME    300600
+ 4 MT    310800
+ 5 VT    323500
+ 6 WY    333700
+ 7 NM    395500
+ 8 DE    444000
+ 9 ID    468100
+10 SD    560300
+# ... with 42 more rows
+
+Query 6.
+6.Write a SQL query to find the number of doctors that contributed to the state having highest 'cash' fine
+
+> highcash=group_by(d,state)
+> highcash$cash_fine=as.integer(highcash$cash_fine)
+> highcash1=summarise(highcash,mysum1=sum(cash_fine,na.rm = TRUE))
+> arrange(highcash1,-highcash1$mysum1)
+# A tibble: 52 x 2
+   state    mysum1
+   <chr>     <int>
+ 1 CA    433151700
+ 2 TX    258704700
+ 3 FL    240088100
+ 4 PA    237613100
+ 5 NC    222915700
+ 6 NY    184041200
+ 7 MA    160537500
+ 8 IL    116532800
+ 9 MI    106892000
+10 MO     92076500
+# ... with 42 more rows
+> doc=group_by(d,org_indiv,state)
+> summarise(doc,state="CA")
+
+Query 7.
+7.Get the top 5 average fine paid per state and category
+
+> p7=group_by(d,state,category,finetot) 
+> p7a=summarise(p7,mean(finetot))
+> arrange(p7a,p7a$`mean(finetot)`)
+> max_fine=arrange(p7a,-p7a$`mean(finetot)`)
+
+Query 8.
+California (CA) has high amount of fines.
+Category Meals has the lowest fines.
+Infosys Sponsored Research initiated before July 1, 2009- category has highest fines.
